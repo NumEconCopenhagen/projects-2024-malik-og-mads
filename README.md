@@ -1,9 +1,8 @@
-# \[Group name\]
+# \[Malik og SØØ\]
 
 **Group members:**
-- A
-- B
-- C
+- Malik Biilmann
+- Mads Sørstrøm
 
 This repository contains  
 1. Inaugural project. 
