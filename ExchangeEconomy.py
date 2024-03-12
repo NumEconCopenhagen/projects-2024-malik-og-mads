@@ -10,7 +10,6 @@ class ExchangeEconomyClass:
         par.alpha = 1/3
         par.beta = 2/3
 
-
         # b. endowments
         par.w1A = 0.8
         par.w2A = 0.3
