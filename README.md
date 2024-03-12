@@ -1,4 +1,4 @@
-# \[Malik og SØØ\]
+# \[Malik og SØØØØØ\]
 
 **Group members:**
 - Malik Biilmann
