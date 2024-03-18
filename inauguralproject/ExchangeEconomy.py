@@ -1,6 +1,7 @@
-from types import SimpleNamespace
+# Import necessary modules
 import numpy as np
-
+from scipy.optimize import minimize
+from types import SimpleNamespace
 class ExchangeEconomyClass:
 
     def __init__(self):
