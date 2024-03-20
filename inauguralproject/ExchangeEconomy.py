@@ -45,3 +45,21 @@ class ExchangeEconomyClass:
         eps2 = x2A - par.w2A + x2B - (1-par.w2A)
 
         return eps1, eps2
+
+    def utility_Anew(self, x1A, x2A):
+        return x1A ** self.par.alpha * x2A ** (1 - self.par.alpha)
+
+    def newdemand_A(self,p1,w1A,w2A):
+        return self.par.alpha*(p1*w1A+w2A)/p1, (1-self.par.alpha)*(p1*w1A+w2A)
+
+    def newdemand_B(self,p1,w1A,w2A):
+        w1B=1-w1A
+        w2B=1-w2A
+        return self.par.beta*(p1*w1B+w2B)/p1, (1-self.par.beta)*(p1*w1B+w2B)
+
+    def marketclearnew(self,p1,w1A,w2A):
+        x1A,x2A = self.newdemand_A(p1,w1A,w2A)
+        x1B,x2B = self.newdemand_B(p1,w1A,w2A)
+        eps1 = x1A-w1A + x1B-(1-w1A)
+
+        return eps1
