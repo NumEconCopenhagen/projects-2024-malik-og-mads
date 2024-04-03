@@ -1,6 +1,7 @@
 # Import necessary modules
 import numpy as np
 from scipy.optimize import minimize
+from scipy import optimize
 from types import SimpleNamespace
 class ExchangeEconomyClass:
 
