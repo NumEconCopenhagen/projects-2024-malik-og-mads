@@ -89,7 +89,7 @@ class Solow:
 
 class Solow_H:
     def __init__(self):
-        # Defining namespaces for parameters
+        # Setting up parameter namespaces
         par = self.par = SimpleNamespace()
         sim = self.sim = SimpleNamespace()
 
@@ -226,8 +226,8 @@ class Solow_H:
             plt.plot(nckt_vals, label="Δk_t=0")
             plt.xlim(0, 20)
             plt.ylim(0, 20)
-            plt.xlabel('Level of physical capital')
-            plt.ylabel('Level of human capital')
+            plt.xlabel('Physical capital')
+            plt.ylabel('Human capital')
             plt.title('Phase Diagram')
 
             # Calculate and display steady state
