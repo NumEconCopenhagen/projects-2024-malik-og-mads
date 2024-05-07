@@ -102,23 +102,23 @@ class Solow_H:
 
         # Naming the parameters
         par.alpha = sm.symbols('alpha')
-        par.s_H = sm.symbols('s_{H}')
+        par.s_H = sm.symbols('s_H')
         par.phi = sm.symbols('phi')
         par.n = sm.symbols('n')
         par.g = sm.symbols('g')
         par.delta = sm.symbols('delta')
-        par.s_K = sm.symbols('s_{K}')
+        par.s_K = sm.symbols('s_K')
 
         # Naming variables
-        par.Y_t = sm.symbols('Y_{t}')
-        par.A_t = sm.symbols('A_{t}')
-        par.H_t = sm.symbols('H_{t}')
-        par.L_t = sm.symbols('L_{t}')
-        par.K_t = sm.symbols('K_{t}')
+        par.Y_t = sm.symbols('Y_t')
+        par.A_t = sm.symbols('A_t')
+        par.H_t = sm.symbols('H_t')
+        par.L_t = sm.symbols('L_t')
+        par.K_t = sm.symbols('K_t')
 
         # Naming per effective worker variables
-        par.kapitaltilde_t = sm.symbols('\tilde{k_{t}}')
-        par.humantilde_t = sm.symbols('\tilde{h_{t}}')
+        par.kapitaltilde_t = sm.symbols('tk')
+        par.humantilde_t = sm.symbols('th')
 
     def ss_value_k(k,h,alpha,delta,s_K,s_H,g,n,phi, do_print=False):
         # Symbolic variables
@@ -195,13 +195,64 @@ class Solow_H:
 
         return 'SS value for k: ', kss_function(alpha,phi,delta,n,g,s_K,s_H) ,'and ss value for h:',  hss_function(alpha,phi,delta,n,g,s_K,s_H)
 
-    def NClines(self, periods=1000):
+
+    def NClines(self, range=1000, delta=0.05, productivity_growth_params=0.3):
         par = self.par
         sim = self.sim
-        periods = periods
+
+        # Define plotting function with fixed savings rates
+        def plot_phase_diagram(s_K=0.2, s_H=0.15):
+            alpha = productivity_growth_params
+            phi = productivity_growth_params
+
+            # Create lambdified functions with updated values
+            human_capital_nullcline_expr = (((delta + par.g * par.n + par.g + par.n) / s_K) ** (1 / phi)) * par.kapitaltilde_t ** ((1 - alpha) / phi)
+            physical_capital_nullcline_expr = (s_H / (delta + par.g * par.n + par.g + par.n)) ** (1 / (1 - phi)) * par.kapitaltilde_t ** (alpha / (1 - phi))
+            human_capital_nullcline_func = sm.lambdify(par.kapitaltilde_t, human_capital_nullcline_expr.subs({par.alpha: alpha, par.phi: phi, par.delta: delta, par.n: sim.n, par.g: sim.g, par.s_K: s_K}))
+            physical_capital_nullcline_func = sm.lambdify(par.kapitaltilde_t, physical_capital_nullcline_expr.subs({par.alpha: alpha, par.phi: phi, par.delta: delta, par.n: sim.n, par.g: sim.g, par.s_H: s_H}))
+
+            # Evaluate functions
+            tildek_variable = np.linspace(0, range-1, range)
+            human_capital_vals = human_capital_nullcline_func(tildek_variable)
+            tildeh_variable = np.linspace(0, range-1, range)
+            physical_capital_vals = physical_capital_nullcline_func(tildeh_variable)
+
+            # Create plot
+            plt.plot(human_capital_vals, label="Δh_t=0")
+            plt.plot(physical_capital_vals, label="Δk_t=0")
+            plt.xlim(0, 20)
+            plt.ylim(0, 20)
+            plt.xlabel('Physical capital')
+            plt.ylabel('Human capital')
+            plt.title('Phase Diagram')
+
+            # Calculate and display steady state
+            try:
+                htilde_steady_state_expr = ((s_H ** (1 - alpha) * s_K ** alpha) / (delta + par.g * par.n + par.g + par.n)) ** (1 / (1 - alpha - phi))
+                ktilde_steady_state_expr = ((s_H ** phi * s_K ** (1 - phi)) / (delta + par.g * par.n + par.g + par.n)) ** (1 / (1 - alpha - phi))
+                htilde_steady_state_func = sm.lambdify([], [htilde_steady_state_expr.subs({par.phi: phi, par.alpha: alpha, par.delta: delta, par.s_K: s_K, par.s_H: s_H, par.n: sim.n, par.g: sim.g})])
+                ktilde_steady_state_func = sm.lambdify([], [ktilde_steady_state_expr.subs({par.phi: phi, par.alpha: alpha, par.delta: delta, par.s_K: s_K, par.s_H: s_H, par.n: sim.n, par.g: sim.g})])
+                tildeh_ss = htilde_steady_state_func()[0]
+                tildek_ss = ktilde_steady_state_func()[0]
+                plt.plot(tildek_ss, tildeh_ss, 'ro', label='Steady State')
+            except Exception as e:
+                print(f"Error calculating steady state: {e}")
+
+            # Display legend
+            plt.legend()
+            # Show plot
+            plt.show()
+
+        # Call plotting function directly
+        plot_phase_diagram()
+
+
+    def interactive_NClines(self, range=1000, delta=0.05, productivity_growth_params=0.3):
+        par = self.par
+        sim = self.sim
 
         # Define interactive function
-        def plot_phase_diagram(s_K, s_H, productivity_growth_params, delta, periods):
+        def plot_phase_diagram(s_K, s_H):
             alpha = productivity_growth_params
             phi = productivity_growth_params
 
@@ -212,16 +263,16 @@ class Solow_H:
             physical_capital_nullcline_func = sm.lambdify(par.kapitaltilde_t, physical_capital_nullcline_expr.subs({par.alpha: alpha, par.phi: phi, par.delta: delta, par.n: sim.n, par.g: sim.g, par.s_H: s_H}))
 
             # Evaluate functions
-            tildek_variable = np.linspace(0, periods-1, periods)
+            tildek_variable = np.linspace(0, range-1, range)
             human_capital_vals = human_capital_nullcline_func(tildek_variable)
-            tildeh_variable = np.linspace(0, periods-1, periods)
+            tildeh_variable = np.linspace(0, range-1, range)
             physical_capital_vals = physical_capital_nullcline_func(tildeh_variable)
 
             # Create plot
             plt.plot(human_capital_vals, label="Δh_t=0")
             plt.plot(physical_capital_vals, label="Δk_t=0")
-            plt.xlim(0, 20)
-            plt.ylim(0, 20)
+            plt.xlim(0, 100)
+            plt.ylim(0, 100)
             plt.xlabel('Physical capital')
             plt.ylabel('Human capital')
             plt.title('Phase Diagram')
@@ -238,7 +289,6 @@ class Solow_H:
             except Exception as e:
                 print(f"Error calculating steady state: {e}")
 
-
             # Display legend
             plt.legend()
             # Show plot
@@ -247,10 +297,8 @@ class Solow_H:
         # Create sliders
         capital_savings_rate_slider = widgets.FloatSlider(min=0.01, max=1.0, step=0.01, value=0.2, description='s_K')
         human_capital_savings_rate_slider = widgets.FloatSlider(min=0.01, max=1.0, step=0.01, value=0.15, description='s_H')
-        productivity_growth_params_slider = widgets.FloatSlider(min=0.001, max=0.5, step=0.001, value=0.3, description='alpha/phi')
-        wear_and_tear_rate_slider = widgets.FloatSlider(min=0.001, max=0.1, step=0.001, value=0.05, description='delta')
-        time_periods_dropdown = widgets.Dropdown(options=list(range(100, 1001, 100)), value=100, description='periods')
 
         # Call interactive function
-        widgets.interact(plot_phase_diagram, s_K=capital_savings_rate_slider, s_H=human_capital_savings_rate_slider, productivity_growth_params=productivity_growth_params_slider, delta=wear_and_tear_rate_slider, periods=time_periods_dropdown)
+        widgets.interact(plot_phase_diagram, s_K=capital_savings_rate_slider, s_H=human_capital_savings_rate_slider)
+
 
