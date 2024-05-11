@@ -1,4 +1,3 @@
-# Importing necessary libraries
 import matplotlib.pyplot as plt
 from types import SimpleNamespace
 import numpy as np
@@ -14,58 +13,45 @@ class Solow:
         par = self.par = SimpleNamespace()
         sim = self.sim = SimpleNamespace()
 
-        # Defining symbolic parameters
-        par.K, par.A, par.L, par.Y, par.S = sm.symbols('K A L Y S')
-        par.alpha, par.delta, par.s, par.g, par.n = sm.symbols('alpha delta s g n')
+        # Defining symbolic parameters and vairables
+        par.A, par.Y, par.K, par.S, par.L, par.s, par.alpha, par.n, par.delta, par.k, par.g = sm.symbols('A Y K S L s alpha n delta k g')
 
-        # Defining capital per effective worker
-        par.k = sm.symbols('k')
-
-        # Defining parameters
-        sim.alpha = 0.3
-        sim.delta = 0.05
-        sim.s = 0.2  
-        sim.g = 0.01
+        # Giving the parameters values
         sim.n = 0.02
-        self.num_periods = 100
+        sim.alpha = 0.3 
+        sim.g = 0.01
+        sim.s = 0.2 
+        sim.delta = 0.05
+        self.num_periods = 99
         self.k_0 = 1e-7
 
     def ss_equation(self):
-        par = self.par
         # Defining the transition equation
+        par = self.par
         f = par.k**par.alpha
         transition = sm.Eq(par.k, 1/((1+par.g)*(1+par.n))*(par.s*f + (1-par.delta)*par.k))
-
-        # Solving for the steady state
-        steady_state = sm.solve(transition, par.k)[0]
-
-        return steady_state
+        # We find the ss
+        ss = sm.solve(transition, par.k)[0]
+        return ss
     
-    def ss_value(self): 
-
+    def value_ss(self): 
         par = self.par
         sim = self.sim
-
-        # Converting symbolic steady state into a function
-        ss_function = sm.lambdify((par.s,par.g,par.n,par.delta,par.alpha), self.ss_equation())
-
-        return ss_function(sim.s,sim.g,sim.n,sim.delta,sim.alpha)
+        # We find the steady state value by converting symbolic steady state into a function
+        ss_function = sm.lambdify((par.s,par.alpha,par.n,par.delta,par.g), self.ss_equation())
+        return ss_function(sim.s,sim.alpha,sim.n,sim.delta,sim.g)
     
     def transition_diagram(self):
-
-        capital_values = [self.k_0]  # List to store the capital stock values
-
-        # Calculate the capital stock values for each period
+        capital_values = [self.k_0]  # Making a list to store values of the capital stock
+        # Calculating capital stock values
         for _ in range(self.num_periods):
-            k_t = capital_values[-1]  # Current capital stock
-            k_t1 = 1 / ((1 + self.sim.g)* (1 + self.sim.n)) * (
-                    (1 - self.sim.delta) * k_t + self.sim.s * k_t ** self.sim.alpha)
+            k_t = capital_values[-1]
+            k_t1 = 1 / ((1 + self.sim.g)* (1 + self.sim.n)) * ((1 - self.sim.delta) * k_t + self.sim.s * k_t ** self.sim.alpha)
             capital_values.append(k_t1)
 
-        # Plotting the transition diagram
-        plt.figure(figsize=(10, 6)) 
-        plt.plot(capital_values[:-1], capital_values[1:], 'bo-', markersize=0, linewidth=1, label='k_t+1')
-        plt.plot(capital_values[:-1], capital_values[:-1], 'ro-', markersize=0, linewidth=1, label='k_t = k_t+1')
+        # Now we are plotting the transition diagram
+        plt.plot(capital_values[:-1], capital_values[1:], 'bo-', markersize=0, linewidth=1.5, label='k_t+1')
+        plt.plot(capital_values[:-1], capital_values[:-1], 'ro-', markersize=0, linewidth=1.5, label='k_t = k_t+1')
         plt.xlabel('Capital level at t')
         plt.ylabel('Capital level at t+1')
         plt.title('Transition diagram of capital')
@@ -75,14 +61,14 @@ class Solow:
     
     def interactive_plot(self):
         # FloatSlider for the variable s
-        s_slider = widgets.FloatSlider(min=0, max=1, step=0.01, value=0.2, description='s')
+        s_slider = widgets.FloatSlider(min=0, max=1, step=0.05, value=0.2, description='s')
 
-        # Interactive update of variable s
-        def update_s_slider(s):
+        # Interactive update of savings variable
+        def s_slider_update(s):
             self.sim.s = s
             self.transition_diagram()
 
-        interactive_plot = widgets.interactive(update_s_slider, s=s_slider)
+        interactive_plot = widgets.interactive(s_slider_update, s=s_slider)
         display(interactive_plot)
 
 class Solow_H:
@@ -92,109 +78,52 @@ class Solow_H:
         sim = self.sim = SimpleNamespace()
 
         # Defining parameters
-        sim.alpha = 0.3
-        sim.phi = 0.3
-        sim.delta = 0.05
         sim.n = 0.02
+        sim.delta = 0.05
         sim.g = 0.01
-        sim.s_K = 0.2
         sim.s_H = 0.15
+        sim.phi = 0.3
+        sim.s_K = 0.2
+        sim.alpha = 0.3
 
-        # Naming the parameters
-        par.alpha = sm.symbols('alpha')
-        par.s_H = sm.symbols('s_H')
-        par.phi = sm.symbols('phi')
-        par.n = sm.symbols('n')
-        par.g = sm.symbols('g')
-        par.delta = sm.symbols('delta')
-        par.s_K = sm.symbols('s_K')
-
-        # Naming variables
-        par.Y_t = sm.symbols('Y_t')
-        par.A_t = sm.symbols('A_t')
-        par.H_t = sm.symbols('H_t')
-        par.L_t = sm.symbols('L_t')
-        par.K_t = sm.symbols('K_t')
+        # Giving our paramters and variables names
+        par.n, par.delta, par.g, par.s_H, par.phi, par.s_K, par.alpha, par.A_t, par.L_t, par.Y_t, par.K_t, par.H_t = sm.symbols('n delta g s_H phi s_K alpha A_t L_t Y_t K_t H_t')
 
         # Naming per effective worker variables
-        par.kapitaltilde_t = sm.symbols('tk')
-        par.humantilde_t = sm.symbols('th')
+        par.kapitaltilde_t = sm.symbols('kt')
+        par.humantilde_t = sm.symbols('ht')
 
-    def ss_value_k(k,h,alpha,delta,s_K,s_H,g,n,phi, do_print=False):
-        # Symbolic variables
-        g = sm.symbols('g')
-        k = sm.symbols('k')
-        h = sm.symbols('h')
-        alpha = sm.symbols('alpha')
-        s_K = sm.symbols('s_K')
-        s_H = sm.symbols('s_H')
-        n = sm.symbols('n')
-        delta = sm.symbols('delta')
-        phi = sm.symbols('phi')
+    def ss_value_k(k, h, alpha, delta, s_K, s_H, g, n, phi, do_print=False):
+        # Symbolic variables initialization:
+        g, k, h, alpha, s_K, s_H, n, delta, phi = sm.symbols('g k h alpha s_K s_H n delta phi')
         
-         # Steady state for human capital
+        # Steady state for human capital:
         steadystate_h = sm.Eq(h, 1/((1+g) * (1+n)) * ((1-delta)*h + (s_H) * h**phi * k**alpha))
-        hsteadystate = sm.solve(steadystate_h,h)[0]
+        hsteadystate = sm.solve(steadystate_h, h)[0]
 
-        # Steady state value function
+        # Steady state value for physical capital: 
         steadystate_k = sm.Eq(k, 1/((1+g) * (1+n)) * ((1 - delta)*k + (s_K) * h**phi * k**alpha))
-        ksteadystate = sm.solve(steadystate_k,k)[0]
+        ksteadystate = sm.solve(steadystate_k, k)[0]
         
+        # Substituting and solving for steady state physical capital: Substitutes the steady state value of human capital into the physical capital equation and solves it.
+        ss_physicalcapital = ksteadystate.subs(h, hsteadystate)
+        return ss_physicalcapital
 
-        # Substituting and solving
-        k_ss = ksteadystate.subs(h,hsteadystate)
-        return k_ss
+    def ss_value_h(k, h, alpha, delta, s_K, s_H, g, n, phi, do_print=False):
+        # Symbolic variables initialization:
+        g, k, h, alpha, s_K, s_H, n, delta, phi = sm.symbols('g k h alpha s_K s_H n delta phi')
 
-    def ss_value_h(k,h,alpha,delta,s_K,s_H,g,n,phi, do_print=False):
-        # Symbolic variables
-        k = sm.symbols('k')
-        delta = sm.symbols('delta')
-        phi = sm.symbols('phi')
-        h = sm.symbols('h')
-        alpha = sm.symbols('alpha')
-        g = sm.symbols('g')
-        s_K = sm.symbols('s_K')
-        s_H = sm.symbols('s_H')
-        n = sm.symbols('n')
-
-        # Steady state for human capital
+        # Steady state for human capital: 
         steadystate_h = sm.Eq(h, 1/((1+g) * (1+n)) * ((1-delta)*h + (s_H) * h**phi * k**alpha))
-        hsteadystate = sm.solve(steadystate_h,h)[0]
+        hsteadystate = sm.solve(steadystate_h, h)[0]
 
-        # Steady state value function
+        # Steady state value for physical capital: 
         steadystate_k = sm.Eq(k, 1/((1+g) * (1+n)) * ((1 - delta)*k + (s_K) * h**phi * k**alpha))
-        ksteadystate = sm.solve(steadystate_k,k)[0]
+        ksteadystate = sm.solve(steadystate_k, k)[0]
 
-
-        # Substituting and solving
-        h_ss = hsteadystate.subs(k,ksteadystate)
-
-        return h_ss
-
-    def ss_functions(self,alpha,phi,delta,n,g,s_K,s_H):
-        par = self.sim
-        alpha = par.alpha
-        phi = par.phi
-        delta = par.delta
-        n = sim.n
-        g= sim.g
-        s_K = sim.s_K
-        s_H = sim.s_H
-
-        # Steady state functions
-        k_tilde = ((s_K**(1-phi) * s_H**phi)/(n+g+delta +n*g))**(1/(1-phi-alpha))
-        h_tilde = ( (s_K**(alpha) * s_H**(1-alpha))/(n+g+delta +n*g))**(1/(1-phi-alpha))
-
-        # Lambdify for Python function
-        kss_function = sm.lambdify((alpha,phi,delta,n,g,s_K,s_H),k_tilde)
-        hss_function = sm.lambdify((alpha,phi,delta,n,g,s_K,s_H),h_tilde) 
-
-        # Calculate SS values
-        kss_function(alpha,phi,delta,n,g,s_K,s_H)
-        hss_function(alpha,phi,delta,n,g,s_K,s_H)
-
-        return 'SS value for k: ', kss_function(alpha,phi,delta,n,g,s_K,s_H) ,'and ss value for h:',  hss_function(alpha,phi,delta,n,g,s_K,s_H)
-
+        # Substituting and solving for steady state human capital : Uses the solved value of physical capital to find the steady state human capital.
+        ss_humancapital = hsteadystate.subs(k, ksteadystate)
+        return ss_humancapital
 
     def NClines(self, range=1000, delta=0.05, productivity_growth_params=0.3):
         par = self.par
@@ -205,19 +134,19 @@ class Solow_H:
             alpha = productivity_growth_params
             phi = productivity_growth_params
 
-            # Create lambdified functions with updated values
+            # We create lambdified functions with updated values
             human_capital_nullcline_expr = (((delta + par.g * par.n + par.g + par.n) / s_K) ** (1 / phi)) * par.kapitaltilde_t ** ((1 - alpha) / phi)
             physical_capital_nullcline_expr = (s_H / (delta + par.g * par.n + par.g + par.n)) ** (1 / (1 - phi)) * par.kapitaltilde_t ** (alpha / (1 - phi))
             human_capital_nullcline_func = sm.lambdify(par.kapitaltilde_t, human_capital_nullcline_expr.subs({par.alpha: alpha, par.phi: phi, par.delta: delta, par.n: sim.n, par.g: sim.g, par.s_K: s_K}))
             physical_capital_nullcline_func = sm.lambdify(par.kapitaltilde_t, physical_capital_nullcline_expr.subs({par.alpha: alpha, par.phi: phi, par.delta: delta, par.n: sim.n, par.g: sim.g, par.s_H: s_H}))
 
-            # Evaluate functions
+            # We then evaluate functions
             tildek_variable = np.linspace(0, range-1, range)
             human_capital_vals = human_capital_nullcline_func(tildek_variable)
             tildeh_variable = np.linspace(0, range-1, range)
             physical_capital_vals = physical_capital_nullcline_func(tildeh_variable)
 
-            # Create plot
+            # We create the plot
             plt.plot(human_capital_vals, label="Δh_t=0")
             plt.plot(physical_capital_vals, label="Δk_t=0")
             plt.xlim(0, 20)
@@ -226,7 +155,7 @@ class Solow_H:
             plt.ylabel('Human capital')
             plt.title('Phase Diagram')
 
-            # Calculate and display steady state
+            # We calculate and display ss
             try:
                 htilde_steady_state_expr = ((s_H ** (1 - alpha) * s_K ** alpha) / (delta + par.g * par.n + par.g + par.n)) ** (1 / (1 - alpha - phi))
                 ktilde_steady_state_expr = ((s_H ** phi * s_K ** (1 - phi)) / (delta + par.g * par.n + par.g + par.n)) ** (1 / (1 - alpha - phi))
@@ -236,11 +165,9 @@ class Solow_H:
                 tildek_ss = ktilde_steady_state_func()[0]
                 plt.plot(tildek_ss, tildeh_ss, 'ro', label='Steady State')
             except Exception as e:
-                print(f"Error calculating steady state: {e}")
+                print(f"Error: {e}")
 
-            # Display legend
             plt.legend()
-            # Show plot
             plt.show()
 
         # Call plotting function directly
@@ -287,11 +214,9 @@ class Solow_H:
                 tildek_ss  = ktilde_steady_state_func()[0]
                 plt.plot(tildek_ss , tildeh_ss , 'ro', label='Steady State')
             except Exception as e:
-                print(f"Error calculating steady state: {e}")
+                print(f"Error: {e}")
 
-            # Display legend
             plt.legend()
-            # Show plot
             plt.show()
 
         # Create sliders
