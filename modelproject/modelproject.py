@@ -6,7 +6,7 @@ import sympy as sm
 from types import SimpleNamespace
 from ipywidgets import interact, FloatSlider
 
-class Solow:
+class Equation:
     def __init__(self):
 
         # Setting up parameters and namespaces
@@ -34,7 +34,7 @@ class Solow:
         ss = sm.solve(transition, par.k)[0]
         return ss
     
-class SolowHHHHH:
+class Solowvalue:
     def __init__(self):
         # Setting up parameters and simulation values using dictionaries
         self.par = {'alpha': 0.3, 'n': 0.02, 'g': 0.01, 's': 0.2, 'delta': 0.05}
@@ -46,8 +46,70 @@ class SolowHHHHH:
         # Closed form solution derived from the steady state equation without sympy
         ss = ((par['s'] / (par['g'] + par['n'] + par['delta'])) ** (1 / (1 - par['alpha'])))
         return ss
+    
+class trans_dia:
+    def __init__(self, alpha=0.3, n=0.02, g=0.01, s=0.2, delta=0.05, k_0=1e-7, num_periods=99):
+        self.alpha = alpha
+        self.n = n
+        self.g = g
+        self.s = s
+        self.delta = delta
+        self.k_0 = k_0
+        self.num_periods = num_periods
 
-class Solow_H:
+    def transition_diagram(self):
+        k_t = self.k_0
+        capital_values = [k_t]
+
+        for _ in range(self.num_periods):
+            k_t1 = (self.s * (k_t ** self.alpha) + (1 - self.delta) * k_t) / (1 + self.g + self.n)
+            capital_values.append(k_t1)
+            k_t = k_t1
+
+        # Plot the transitions
+        plt.plot(capital_values[:-1], capital_values[1:], 'b-', linewidth=1.5, label='k_t+1')
+        plt.plot(capital_values[:-1], capital_values[:-1], 'r-', linewidth=1.5, label='k_t = k_t+1')
+        plt.xlabel('Capital level at t')
+        plt.ylabel('Capital level at t+1')
+        plt.title('Transition diagram of capital')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+    
+class inter_trans_dia:
+    def __init__(self, alpha=0.3, n=0.02, g=0.01, s=0.2, delta=0.05, k_0=1e-7, num_periods=99):
+        self.alpha = alpha
+        self.n = n
+        self.g = g
+        self.s = s
+        self.delta = delta
+        self.k_0 = k_0
+        self.num_periods = num_periods
+
+    def set_savings_rate(self, s):
+        self.s = s
+
+    def transition_diagram(self):
+        import matplotlib.pyplot as plt
+        k_t = self.k_0
+        capital_values = [k_t]
+
+        for _ in range(self.num_periods):
+            k_t1 = (self.s * (k_t ** self.alpha) + (1 - self.delta) * k_t) / (1 + self.g + self.n)
+            capital_values.append(k_t1)
+            k_t = k_t1
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(capital_values[:-1], capital_values[1:], 'b-', linewidth=1.5, label='k_t+1')
+        plt.plot(capital_values[:-1], capital_values[:-1], 'r-', linewidth=1.5, label='k_t = k_t+1')
+        plt.xlabel('Capital level at t')
+        plt.ylabel('Capital level at t+1')
+        plt.title('Transition diagram of capital')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+class Solow2_equations:
     def __init__(self):
         # Setting up parameter namespaces
         par = self.par = SimpleNamespace()
@@ -100,8 +162,20 @@ class Solow_H:
         # Substituting and solving for steady state human capital : Uses the solved value of physical capital to find the steady state human capital.
         ss_humancapital = hsteadystate.subs(k, ksteadystate)
         return ss_humancapital
+    
+# Define the steady state equations as Python functions
+def h_steady_state(alpha, phi, delta, n, g, s_K, s_H):
+    """Calculate the steady state for human capital."""
+    tildeh = ((s_H**(1 - alpha) * s_K**alpha) / (delta + g * n + g + n))**(1 / (1 - alpha - phi))
+    return tildeh
 
-class SolowHHH:
+def k_steady_state(alpha, phi, delta, n, g, s_K, s_H):
+    """Calculate the steady state for physical capital."""
+    tildek = ((s_H**phi * s_K**(1 - phi)) / (delta + g * n + g + n))**(1 / (1 - alpha - phi))
+    return tildek
+
+
+class trans_dia2:
     def __init__(self, alpha=0.3, phi=0.3, delta=0.05, n=0.02, g=0.01, s_K=0.2, s_H=0.15):
         self.alpha = alpha
         self.phi = phi
