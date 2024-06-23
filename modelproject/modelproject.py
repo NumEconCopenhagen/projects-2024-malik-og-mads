@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from IPython.display import display
-import ipywidgets as widgets
 import sympy as sm
 from types import SimpleNamespace
 from ipywidgets import interact, FloatSlider

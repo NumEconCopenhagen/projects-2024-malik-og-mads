@@ -1,10 +1,7 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 
-# Replace inc_api with the actual DataFrame
-# inc_api = pd.read_csv('path_to_your_data.csv')  # Example of loading data
 
 class CrimePlot:
     def __init__(self, data):
